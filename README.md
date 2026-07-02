@@ -15,3 +15,14 @@ La misma cuenta con docker, para crear la imagen usar el comando ``` docker comp
 
 Cuando termine se puede acceder por la ruta http://localhost:8080/swagger
 <img width="1602" height="593" alt="image" src="https://github.com/user-attachments/assets/7ed78aa9-2e5c-4034-9ea1-60edd64d5ca0" />
+
+# Test
+Se realizo los test sobre los servicios:
+
+<img width="700" height="219" alt="image" src="https://github.com/user-attachments/assets/6f730be5-502a-47d6-8225-bc6378e0c465" />
+
+Principalmente se probo siempre los casos felices y los casos de error ( duplicados, usuarios inexistentes, etc).
+
+Tambien mas a modo integrador sobre los controllers, que hacen todo el flujo.
+
+<img width="571" height="226" alt="image" src="https://github.com/user-attachments/assets/686d2363-beef-4d59-afd5-71f04eb19374" />
