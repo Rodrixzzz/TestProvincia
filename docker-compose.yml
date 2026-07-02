@@ -1,13 +1,16 @@
 services:
-  db:
+  sqlserver:
     image: mcr.microsoft.com/mssql/server:2022-latest
     environment:
       ACCEPT_EULA: "Y"
       MSSQL_SA_PASSWORD: "TestProvincia123!"
     ports:
-      - "1443:1443"
+      - "1433:1433"
     volumes:
       - sql_data:/var/opt/mssql
+    networks:
+      - productnetwork
+    restart: on-failure
     healthcheck:
       test: /opt/mssql-tools18/bin/sqlcmd -S localhost -U sa -P "TestProvincia123!" -C -Q "SELECT 1" || exit 1
       interval: 10s
@@ -21,10 +24,14 @@ services:
       - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: "Development"
-      ConnectionStrings__DefaultConnection: "Server=db;Database=TestProvinciaDb;User Id=sa;Password=TestProvincia123!;TrustServerCertificate=True;"
+    networks:
+     - productnetwork  
     depends_on:
-      db:
+      sqlserver:
         condition: service_healthy
+        
+networks:
+  productnetwork:
 
 volumes:
   sql_data:

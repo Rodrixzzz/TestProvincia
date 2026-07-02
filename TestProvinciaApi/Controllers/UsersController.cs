@@ -41,6 +41,9 @@ public class UsersController : ControllerBase
     /// <summary>
     /// Endpoint para Crear un usuario
     /// </summary>
+    /// <remarks>
+    /// Tipos de Documentos: DNI, Pasaporte
+    /// </remarks>
     [HttpPost]
     public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserDto dto)
     {
@@ -50,6 +53,9 @@ public class UsersController : ControllerBase
     /// <summary>
     /// Endpoint para modificar un usuario existente
     /// </summary>
+    /// <remarks>
+    /// Tipos de Documentos: DNI, Pasaporte
+    /// </remarks>
     /// <param name="id">Id de usuario.</param>
     [HttpPut("{id}")]
     public async Task<ActionResult<UserDto>> Update(int id, [FromBody] UpdateUserDto dto)

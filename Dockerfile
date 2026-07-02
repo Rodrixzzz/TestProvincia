@@ -8,6 +8,7 @@ COPY TestProvincia.Infrastructure/TestProvincia.Infrastructure.csproj TestProvin
 COPY TestProvincia.Shared/TestProvincia.Shared.csproj TestProvincia.Shared/
 RUN dotnet restore TestProvinciaApi/TestProvinciaApi.csproj
 
+
 COPY . .
 WORKDIR /src/TestProvinciaApi
 RUN dotnet publish -c Release -o /app
