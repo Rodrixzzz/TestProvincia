@@ -1,6 +1,45 @@
 @TestProvinciaApi_HostAddress = http://localhost:5057
 
-GET {{TestProvinciaApi_HostAddress}}/weatherforecast/
+GET {{TestProvinciaApi_HostAddress}}/api/users
 Accept: application/json
+
+###
+
+GET {{TestProvinciaApi_HostAddress}}/api/users/1
+Accept: application/json
+
+###
+
+POST {{TestProvinciaApi_HostAddress}}/api/users
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "lastName": "Pérez",
+  "documentType": 0,
+  "documentNumber": "12345678",
+  "address": "Calle Falsa 123",
+  "province": "Buenos Aires",
+  "phoneNumber": "1122334455"
+}
+
+###
+
+PUT {{TestProvinciaApi_HostAddress}}/api/users/1
+Content-Type: application/json
+
+{
+  "name": "Juan",
+  "lastName": "García",
+  "documentType": 1,
+  "documentNumber": "AA123456",
+  "address": "Av. Real 456",
+  "province": "CABA",
+  "phoneNumber": "1199887766"
+}
+
+###
+
+DELETE {{TestProvinciaApi_HostAddress}}/api/users/1
 
 ###

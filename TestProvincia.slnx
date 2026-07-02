@@ -1,3 +1,8 @@
 <Solution>
+  <Project Path="TestProvincia.Application/TestProvincia.Application.csproj" />
+  <Project Path="TestProvincia.Domain/TestProvincia.Domain.csproj" />
+  <Project Path="TestProvincia.Infrastructure/TestProvincia.Infrastructure.csproj" />
+  <Project Path="TestProvincia.Shared/TestProvincia.Shared.csproj" Id="7c4ac983-7bc6-4a54-ad11-cf5563dec693" />
+  <Project Path="TestProvincia.Tests/TestProvincia.Tests.csproj" />
   <Project Path="TestProvinciaApi/TestProvinciaApi.csproj" />
 </Solution>
