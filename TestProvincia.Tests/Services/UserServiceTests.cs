@@ -49,13 +49,11 @@ public class UserServiceTests
     }
 
     [Fact]
-    public async Task GetByIdAsync_NonExistingUser_ReturnsNull()
+    public async Task GetByIdAsync_NonExistingUser_ThrowsNotFoundException()
     {
         _repositoryMock.Setup(r => r.GetByIdAsync(99)).ReturnsAsync((User?)null);
 
-        var result = await _service.GetByIdAsync(99);
-
-        Assert.Null(result);
+        await Assert.ThrowsAsync<NotFoundException>(() => _service.GetByIdAsync(99));
     }
 
     [Fact]

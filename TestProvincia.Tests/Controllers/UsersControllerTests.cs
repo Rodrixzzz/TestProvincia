@@ -1,6 +1,7 @@
 using System.Net;
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
+using Microsoft.Data.Sqlite;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TestProvincia.Application.DTOs;
@@ -10,12 +11,20 @@ using TestProvinciaApi.Controllers;
 
 namespace TestProvincia.Tests.Controllers;
 
-public class UsersControllerTests
+public class UsersControllerTests : IDisposable
 {
-    private WebApplicationFactory<UsersController> CreateFactory(string dbName)
+    private readonly List<SqliteConnection> _connections = [];
+
+    private WebApplicationFactory<UsersController> CreateFactory()
     {
+        var connection = new SqliteConnection("Data Source=:memory:");
+        connection.Open();
+        _connections.Add(connection);
+
         return new WebApplicationFactory<UsersController>().WithWebHostBuilder(builder =>
         {
+            builder.UseSetting("Environment", "Test");
+
             builder.ConfigureServices(services =>
             {
                 var descriptor = services.SingleOrDefault(d => d.ServiceType == typeof(DbContextOptions<AppDbContext>));
@@ -23,7 +32,7 @@ public class UsersControllerTests
                     services.Remove(descriptor);
 
                 services.AddDbContext<AppDbContext>(options =>
-                    options.UseInMemoryDatabase(dbName));
+                    options.UseSqlite(connection));
 
                 using var scope = services.BuildServiceProvider().CreateScope();
                 var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -40,10 +49,16 @@ public class UsersControllerTests
         });
     }
 
+    public void Dispose()
+    {
+        foreach (var c in _connections)
+            c.Dispose();
+    }
+
     [Fact]
     public async Task GetAll_EmptyDatabase_ReturnsEmptyList()
     {
-        var factory = CreateFactory(Guid.NewGuid().ToString());
+        var factory = CreateFactory();
         var client = factory.CreateClient();
 
         var response = await client.GetAsync("/api/users");
@@ -57,7 +72,7 @@ public class UsersControllerTests
     [Fact]
     public async Task CreateUser_ReturnsCreated()
     {
-        var factory = CreateFactory(Guid.NewGuid().ToString());
+        var factory = CreateFactory();
         var client = factory.CreateClient();
         var dto = new CreateUserDto
         {
@@ -82,8 +97,7 @@ public class UsersControllerTests
     [Fact]
     public async Task GetById_ExistingUser_ReturnsUser()
     {
-        var dbName = Guid.NewGuid().ToString();
-        var factory = CreateFactory(dbName);
+        var factory = CreateFactory();
         using (var scope = factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -112,7 +126,7 @@ public class UsersControllerTests
     [Fact]
     public async Task GetById_NonExistingUser_ReturnsNotFound()
     {
-        var factory = CreateFactory(Guid.NewGuid().ToString());
+        var factory = CreateFactory();
         var client = factory.CreateClient();
 
         var response = await client.GetAsync("/api/users/999");
@@ -123,8 +137,7 @@ public class UsersControllerTests
     [Fact]
     public async Task UpdateUser_ExistingUser_ReturnsUpdated()
     {
-        var dbName = Guid.NewGuid().ToString();
-        var factory = CreateFactory(dbName);
+        var factory = CreateFactory();
         using (var scope = factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -162,7 +175,7 @@ public class UsersControllerTests
     [Fact]
     public async Task UpdateUser_NonExistingUser_ReturnsNotFound()
     {
-        var factory = CreateFactory(Guid.NewGuid().ToString());
+        var factory = CreateFactory();
         var client = factory.CreateClient();
         var dto = new UpdateUserDto
         {
@@ -180,8 +193,7 @@ public class UsersControllerTests
     [Fact]
     public async Task DeleteUser_ExistingUser_ReturnsNoContent()
     {
-        var dbName = Guid.NewGuid().ToString();
-        var factory = CreateFactory(dbName);
+        var factory = CreateFactory();
         using (var scope = factory.Services.CreateScope())
         {
             var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -204,7 +216,7 @@ public class UsersControllerTests
     [Fact]
     public async Task DeleteUser_NonExistingUser_ReturnsNotFound()
     {
-        var factory = CreateFactory(Guid.NewGuid().ToString());
+        var factory = CreateFactory();
         var client = factory.CreateClient();
 
         var response = await client.DeleteAsync("/api/users/999");
@@ -215,7 +227,7 @@ public class UsersControllerTests
     [Fact]
     public async Task CreateUser_DuplicateDocument_ReturnsConflict()
     {
-        var factory = CreateFactory(Guid.NewGuid().ToString());
+        var factory = CreateFactory();
         var client = factory.CreateClient();
 
         var dto = new CreateUserDto
@@ -239,7 +251,7 @@ public class UsersControllerTests
     [Fact]
     public async Task UpdateUser_DuplicateDocument_ReturnsConflict()
     {
-        var factory = CreateFactory(Guid.NewGuid().ToString());
+        var factory = CreateFactory();
         var client = factory.CreateClient();
 
         var userA = new CreateUserDto
