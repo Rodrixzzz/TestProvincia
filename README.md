@@ -8,9 +8,10 @@ La app cuenta con los siguientes endpoins para el manejo de usuarios.
 
 
 # Docker
-La misma cuenta con docker para crear la imagen usar el comando docker compose up -d desde la raíz del repositorio.  
+La misma cuenta con docker, para crear la imagen usar el comando ``` docker compose up -d ``` desde la raíz del repositorio.  
 
 <img width="486" height="131" alt="image" src="https://github.com/user-attachments/assets/8c5741aa-9bfd-4c8c-9221-8159a4238bb7" />
+<img width="1146" height="166" alt="image" src="https://github.com/user-attachments/assets/a9d1582e-8a0d-4bb7-9928-7fc4bb6c2f80" />
 
 Cuando termine se puede acceder por la ruta http://localhost:8080/swagger
 <img width="1602" height="593" alt="image" src="https://github.com/user-attachments/assets/7ed78aa9-2e5c-4034-9ea1-60edd64d5ca0" />
