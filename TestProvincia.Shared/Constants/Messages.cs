@@ -10,5 +10,10 @@
             public const string NotExistUser = " no existe en la base de datos";
             public const string DuplicatedUser = " ya existe en la base de datos";
         }
+        public static class Common
+        {
+            public const string UserIdText = "El usuario con ID: ";
+            public const string UserDocText = "El usuario con Tipo y Documento ";
+        }
     }
 }

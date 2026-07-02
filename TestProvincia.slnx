@@ -1,4 +1,12 @@
 <Solution>
+  <Folder Name="/Solution Items/">
+    <File Path=".dockerignore" />
+    <File Path=".gitattributes" />
+    <File Path=".gitignore" />
+    <File Path="docker-compose.yml" />
+    <File Path="Dockerfile" />
+    <File Path="README.md" />
+  </Folder>
   <Project Path="TestProvincia.Application/TestProvincia.Application.csproj" />
   <Project Path="TestProvincia.Domain/TestProvincia.Domain.csproj" />
   <Project Path="TestProvincia.Infrastructure/TestProvincia.Infrastructure.csproj" />

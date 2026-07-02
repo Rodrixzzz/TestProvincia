@@ -29,7 +29,9 @@ public class UserService : IUserService
     public async Task<UserDto?> GetByIdAsync(int id)
     {
         var user = await _repository.GetByIdAsync(id);
-        return user is null ? null : MapsHelper.MapToDto(user);
+        if (user is null)
+            throw new NotFoundException(Messages.Common.UserIdText + id + Messages.Error.NotExistUser);
+        return MapsHelper.MapToDto(user);
     }
 
     public async Task<UserDto> CreateAsync(CreateUserDto dto)
@@ -38,7 +40,7 @@ public class UserService : IUserService
 
         var existing = await _repository.GetByDocumentNumberAsync(dto.DocumentNumber, dto.DocumentType);
         if (existing != null)
-            throw new DuplicatedException(dto.DocumentType + " " + dto.DocumentNumber + Messages.Error.DuplicatedUser);
+            throw new DuplicatedException(Messages.Common.UserDocText + dto.DocumentType + " " + dto.DocumentNumber + Messages.Error.DuplicatedUser);
 
         var docType = await _repository.GetDocumentTypeByDescAsync(dto.DocumentType);
 
@@ -61,7 +63,7 @@ public class UserService : IUserService
     {
         var existing = await _repository.GetByIdAsync(id);
         if (existing is null)
-            throw new NotFoundException(id + Messages.Error.NotExistUser);
+            throw new NotFoundException(Messages.Common.UserIdText +  id + Messages.Error.NotExistUser);
 
         _validator.ValidateAndThrow(dto);
         var docType = existing.DocumentType;
@@ -71,7 +73,7 @@ public class UserService : IUserService
             var documentExist = await _repository.GetByDocumentNumberAsync(dto.DocumentNumber, dto.DocumentType);
             if (documentExist != null)
             {
-                throw new DuplicatedException(dto.DocumentType + " " + dto.DocumentNumber + Messages.Error.DuplicatedUser);
+                throw new DuplicatedException(Messages.Common.UserDocText + dto.DocumentType + " " + dto.DocumentNumber + Messages.Error.DuplicatedUser);
             }
             docType = await _repository.GetDocumentTypeByDescAsync(dto.DocumentType);
         }

@@ -23,7 +23,14 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+      options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
+          b => b.EnableRetryOnFailure(
+              maxRetryCount: 5,
+              maxRetryDelay: TimeSpan.FromSeconds(30),
+              errorNumbersToAdd: null)
+              .MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
+      )
+);
 
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IUserService, UserService>();
@@ -40,9 +47,16 @@ if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
+    using (var scope = app.Services.CreateScope())
+    {
+        var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        dbContext.Database.Migrate();
+    }
 }
-
-app.UseHttpsRedirection();
+else
+{
+    app.UseHttpsRedirection();
+}
 app.UseAuthorization();
 app.MapControllers();
 app.UseExceptionHandler();
