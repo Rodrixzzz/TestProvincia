@@ -38,6 +38,10 @@ public class UserService : IUserService
     {
         _validator.ValidateAndThrow(dto);
 
+        var existing = await _repository.GetByDocumentNumberAsync(dto.DocumentNumber, dto.DocumentType);
+        if (existing != null)
+            throw new DuplicatedException(dto.DocumentType + " " + dto.DocumentNumber + Messages.Error.DuplicatedUser);
+
         var user = new User
         {
             Name = dto.Name,
@@ -60,6 +64,13 @@ public class UserService : IUserService
             throw new NotFoundException(id + Messages.Error.NotExistUser);
 
         _validator.ValidateAndThrow(dto);
+
+        if (existing.DocumentNumber != dto.DocumentNumber)
+        {
+            var documentExist = await _repository.GetByDocumentNumberAsync(dto.DocumentNumber, dto.DocumentType);
+            if (documentExist != null)
+                throw new DuplicatedException(dto.DocumentType + " " + dto.DocumentNumber + Messages.Error.DuplicatedUser);
+        }
 
         existing.Name = dto.Name;
         existing.LastName = dto.LastName;

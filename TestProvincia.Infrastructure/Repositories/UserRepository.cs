@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using TestProvincia.Domain.Entities;
+using TestProvincia.Domain.Enums;
 using TestProvincia.Domain.Interfaces;
 using TestProvincia.Infrastructure.Data;
 
@@ -46,5 +47,11 @@ public class UserRepository : IUserRepository
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
         }
+    }
+
+    public async Task<User?> GetByDocumentNumberAsync(string number, string type)
+    {
+        var typeaux = Enum.Parse<DocumentType>(type);
+        return await _context.Users.FirstOrDefaultAsync(x => x.DocumentNumber == number && x.DocumentType == typeaux);
     }
 }

@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TestProvincia.Application.DTOs;
 using TestProvincia.Domain.Entities;
+using TestProvincia.Domain.Enums;
 using TestProvincia.Infrastructure.Data;
 using TestProvinciaApi.Controllers;
 
@@ -51,7 +52,7 @@ public class UsersControllerTests
         {
             Name = "Carlos",
             LastName = "Garcia",
-            DocumentType = DocumentType.DNI,
+            DocumentType = "DNI",
             DocumentNumber = "33456789",
             Address = "Av. Siempre Viva 742",
             Province = "Córdoba",
@@ -80,7 +81,7 @@ public class UsersControllerTests
                 Name = "Maria",
                 LastName = "Lopez",
                 DocumentType = DocumentType.Pasaporte,
-                DocumentNumber = "XX123456",
+                DocumentNumber = "37558223",
                 Address = "Calle 123",
                 Province = "Santa Fe",
                 PhoneNumber = "342555678"
@@ -131,9 +132,9 @@ public class UsersControllerTests
         {
             Name = "Updated",
             LastName = "Name",
-            DocumentType = DocumentType.Pasaporte,
-            DocumentNumber = "YY999999",
-            Address = "New Address 456",
+            DocumentType = "Pasaporte",
+            DocumentNumber = "99999999",
+            Address = "Calle falsa 123",
             Province = "Mendoza",
             PhoneNumber = "261555000"
         };
@@ -156,7 +157,7 @@ public class UsersControllerTests
         {
             Name = "Nobody",
             LastName = "Nowhere",
-            DocumentType = DocumentType.DNI,
+            DocumentType = "DNI",
             DocumentNumber = "00000000"
         };
 

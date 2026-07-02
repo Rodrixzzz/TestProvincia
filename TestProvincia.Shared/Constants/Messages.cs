@@ -8,6 +8,7 @@
             public const string NotNumberField = "Solo se pueden ingresar números";
             public const string InvalidDocumentType = "Tipo de documento invalido";
             public const string NotExistUser = " no existe en la base de datos";
+            public const string DuplicatedUser = " ya existe en la base de datos";
         }
     }
 }
