@@ -7,6 +7,7 @@ public interface IUserRepository
     Task<IEnumerable<User>> GetAllAsync();
     Task<User?> GetByIdAsync(int id);
     Task<User?> GetByDocumentNumberAsync(string number, string type);
+    Task<DocumentType?> GetDocumentTypeByDescAsync(string desc);
     Task<User> AddAsync(User user);
     Task<User> UpdateAsync(User user);
     Task DeleteAsync(int id);

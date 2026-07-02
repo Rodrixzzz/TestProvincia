@@ -3,7 +3,6 @@ using Moq;
 using TestProvincia.Application.DTOs;
 using TestProvincia.Application.Services;
 using TestProvincia.Domain.Entities;
-using TestProvincia.Domain.Enums;
 using TestProvincia.Domain.Interfaces;
 using TestProvincia.Shared.Exceptions;
 
@@ -27,8 +26,8 @@ public class UserServiceTests
     {
         var users = new List<User>
         {
-            new() { Id = 1, Name = "Carlos", LastName = "Garcia", DocumentType = DocumentType.DNI, DocumentNumber = "Carlos" },
-            new() { Id = 2, Name = "Gonzalo", LastName = "Gomez", DocumentType = DocumentType.Pasaporte, DocumentNumber = "35456989" }
+            new() { Id = 1, Name = "Carlos", LastName = "Garcia", DocumentTypeId = 1, DocumentType = new DocumentType { Id = 1, Desc = "DNI" }, DocumentNumber = "12345678" },
+            new() { Id = 2, Name = "Gonzalo", LastName = "Gomez", DocumentTypeId = 2, DocumentType = new DocumentType { Id = 2, Desc = "Pasaporte" }, DocumentNumber = "35456989" }
         };
         _repositoryMock.Setup(r => r.GetAllAsync()).ReturnsAsync(users);
 
@@ -40,13 +39,13 @@ public class UserServiceTests
     [Fact]
     public async Task GetByIdAsync_ExistingUser_ReturnsUser()
     {
-        var user = new User { Id = 1, Name = "Carlos", LastName = "Garcia", DocumentType = DocumentType.DNI, DocumentNumber = "Carlos" };
+        var user = new User { Id = 1, Name = "Carlos", LastName = "Garcia", DocumentTypeId = 1, DocumentType = new DocumentType { Id = 1, Desc = "DNI" }, DocumentNumber = "12345678" };
         _repositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
 
         var result = await _service.GetByIdAsync(1);
 
         Assert.NotNull(result);
-        Assert.Equal("John", result.Name);
+        Assert.Equal("Carlos", result.Name);
     }
 
     [Fact]
@@ -78,13 +77,16 @@ public class UserServiceTests
             Id = 1,
             Name = dto.Name,
             LastName = dto.LastName,
-            DocumentType = DocumentType.DNI,
+            DocumentTypeId = 1,
+            DocumentType = new DocumentType { Id = 1, Desc = "DNI" },
             DocumentNumber = dto.DocumentNumber,
             Address = dto.Address,
             Province = dto.Province,
             PhoneNumber = dto.PhoneNumber
         };
 
+        _repositoryMock.Setup(r => r.GetDocumentTypeByDescAsync("DNI"))
+            .ReturnsAsync(new DocumentType { Id = 1, Desc = "DNI", Active = true });
         _repositoryMock.Setup(r => r.AddAsync(It.IsAny<User>())).ReturnsAsync(createdUser);
 
         var result = await _service.CreateAsync(dto);
@@ -95,9 +97,29 @@ public class UserServiceTests
     }
 
     [Fact]
+    public async Task CreateAsync_DuplicateDocument_ThrowsDuplicatedException()
+    {
+        var dto = new CreateUserDto
+        {
+            Name = "Otro",
+            LastName = "User",
+            DocumentType = "DNI",
+            DocumentNumber = "33456789",
+            Address = "Calle 123",
+            Province = "CABA",
+            PhoneNumber = "123456789"
+        };
+
+        _repositoryMock.Setup(r => r.GetByDocumentNumberAsync("33456789", "DNI"))
+            .ReturnsAsync(new User { Id = 99 });
+
+        await Assert.ThrowsAsync<DuplicatedException>(() => _service.CreateAsync(dto));
+    }
+
+    [Fact]
     public async Task UpdateAsync_ExistingUser_ReturnsUpdatedUser()
     {
-        var existingUser = new User { Id = 1, Name = "Viejo", LastName = "Name", DocumentType = DocumentType.DNI, DocumentNumber = "00000000" };
+        var existingUser = new User { Id = 1, Name = "Viejo", LastName = "Name", DocumentTypeId = 1, DocumentType = new DocumentType { Id = 1, Desc = "DNI" }, DocumentNumber = "00000000" };
         var dto = new UpdateUserDto
         {
             Name = "Carlos",
@@ -110,13 +132,37 @@ public class UserServiceTests
         };
 
         _repositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingUser);
+        _repositoryMock.Setup(r => r.GetDocumentTypeByDescAsync("DNI"))
+            .ReturnsAsync(new DocumentType { Id = 1, Desc = "DNI", Active = true });
         _repositoryMock.Setup(r => r.UpdateAsync(It.IsAny<User>())).ReturnsAsync((User u) => u);
 
         var result = await _service.UpdateAsync(1, dto);
 
         Assert.NotNull(result);
-        Assert.Equal("New", result.Name);
-        Assert.Equal(DocumentType.Pasaporte, result.DocumentType);
+        Assert.Equal("Carlos", result.Name);
+        Assert.Equal("DNI", result.DocumentType);
+    }
+
+    [Fact]
+    public async Task UpdateAsync_DuplicateDocument_ThrowsDuplicatedException()
+    {
+        var existingUser = new User { Id = 1, Name = "Viejo", LastName = "Name", DocumentTypeId = 1, DocumentType = new DocumentType { Id = 1, Desc = "DNI" }, DocumentNumber = "00000000" };
+        var dto = new UpdateUserDto
+        {
+            Name = "Otro",
+            LastName = "User",
+            DocumentType = "DNI",
+            DocumentNumber = "33456789",
+            Address = "Calle 123",
+            Province = "CABA",
+            PhoneNumber = "123456789"
+        };
+
+        _repositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(existingUser);
+        _repositoryMock.Setup(r => r.GetByDocumentNumberAsync("33456789", "DNI"))
+            .ReturnsAsync(new User { Id = 99 });
+
+        await Assert.ThrowsAsync<DuplicatedException>(() => _service.UpdateAsync(1, dto));
     }
 
     [Fact]
@@ -130,7 +176,7 @@ public class UserServiceTests
     [Fact]
     public async Task DeleteAsync_ExistingUser_ReturnsTrue()
     {
-        var user = new User { Id = 1, Name = "Test", LastName = "User", DocumentType = DocumentType.DNI, DocumentNumber = "12345678" };
+        var user = new User { Id = 1, Name = "Test", LastName = "User", DocumentTypeId = 1, DocumentType = new DocumentType { Id = 1, Desc = "DNI" }, DocumentNumber = "12345678" };
         _repositoryMock.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(user);
         _repositoryMock.Setup(r => r.DeleteAsync(1)).Returns(Task.CompletedTask);
 

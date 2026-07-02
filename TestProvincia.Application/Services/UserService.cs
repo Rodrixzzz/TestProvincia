@@ -1,11 +1,9 @@
 using FluentValidation;
-using System.Text;
 using TestProvincia.Application.DTOs;
 using TestProvincia.Application.Interfaces;
 using TestProvincia.Application.Mappers;
 using TestProvincia.Application.Validations;
 using TestProvincia.Domain.Entities;
-using TestProvincia.Domain.Enums;
 using TestProvincia.Domain.Interfaces;
 using TestProvincia.Shared.Constants;
 using TestProvincia.Shared.Exceptions;
@@ -42,11 +40,13 @@ public class UserService : IUserService
         if (existing != null)
             throw new DuplicatedException(dto.DocumentType + " " + dto.DocumentNumber + Messages.Error.DuplicatedUser);
 
+        var docType = await _repository.GetDocumentTypeByDescAsync(dto.DocumentType);
+
         var user = new User
         {
             Name = dto.Name,
             LastName = dto.LastName,
-            DocumentType = Enum.Parse<DocumentType>(dto.DocumentType),
+            DocumentTypeId = docType.Id,
             DocumentNumber = dto.DocumentNumber,
             Address = dto.Address,
             Province = dto.Province,
@@ -64,17 +64,22 @@ public class UserService : IUserService
             throw new NotFoundException(id + Messages.Error.NotExistUser);
 
         _validator.ValidateAndThrow(dto);
+        var docType = existing.DocumentType;
 
-        if (existing.DocumentNumber != dto.DocumentNumber)
+        if (existing.DocumentNumber != dto.DocumentNumber || existing.DocumentType.Desc != dto.DocumentType)
         {
             var documentExist = await _repository.GetByDocumentNumberAsync(dto.DocumentNumber, dto.DocumentType);
             if (documentExist != null)
+            {
                 throw new DuplicatedException(dto.DocumentType + " " + dto.DocumentNumber + Messages.Error.DuplicatedUser);
+            }
+            docType = await _repository.GetDocumentTypeByDescAsync(dto.DocumentType);
         }
+
 
         existing.Name = dto.Name;
         existing.LastName = dto.LastName;
-        existing.DocumentType = Enum.Parse<DocumentType>(dto.DocumentType);
+        existing.DocumentTypeId = docType.Id;
         existing.DocumentNumber = dto.DocumentNumber;
         existing.Address = dto.Address;
         existing.Province = dto.Province;

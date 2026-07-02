@@ -14,6 +14,10 @@ public class UsersController : ControllerBase
     {
         _userService = userService;
     }
+    /// <summary>
+    /// Endpoint para obtener todos los usuarios
+    /// </summary>
+    /// <returns>Todos los usuarios.</returns>
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<UserDto>>> GetAll()
@@ -21,7 +25,11 @@ public class UsersController : ControllerBase
         var users = await _userService.GetAllAsync();
         return Ok(users);
     }
-
+    /// <summary>
+    /// Endpoint para obtener un usuario en especifico por la Id
+    /// </summary>
+    /// <param name="id">Id de usuario.</param>
+    /// <returns>Usuario asociado a ese Id.</returns>
     [HttpGet("{id}")]
     public async Task<ActionResult<UserDto>> GetById(int id)
     {
@@ -30,14 +38,19 @@ public class UsersController : ControllerBase
             return NotFound();
         return Ok(user);
     }
-
+    /// <summary>
+    /// Endpoint para Crear un usuario
+    /// </summary>
     [HttpPost]
     public async Task<ActionResult<UserDto>> Create([FromBody] CreateUserDto dto)
     {
         var user = await _userService.CreateAsync(dto);
         return CreatedAtAction(nameof(GetById), new { id = user.Id }, user);
     }
-
+    /// <summary>
+    /// Endpoint para modificar un usuario existente
+    /// </summary>
+    /// <param name="id">Id de usuario.</param>
     [HttpPut("{id}")]
     public async Task<ActionResult<UserDto>> Update(int id, [FromBody] UpdateUserDto dto)
     {
@@ -46,6 +59,10 @@ public class UsersController : ControllerBase
             return NotFound();
         return Ok(user);
     }
+    /// <summary>
+    /// Endpoint para borrar un usuario existente
+    /// </summary>
+    /// <param name="id">Id de usuario.</param>
 
     [HttpDelete("{id}")]
     public async Task<ActionResult> Delete(int id)

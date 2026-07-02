@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace TestProvincia.Domain.Enums
 {
-    public enum DocumentType
+    public enum DocumentTypeEnum
     {
         DNI = 1,
         Pasaporte

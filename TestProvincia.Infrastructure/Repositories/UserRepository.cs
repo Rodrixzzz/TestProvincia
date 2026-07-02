@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using TestProvincia.Domain.Entities;
-using TestProvincia.Domain.Enums;
 using TestProvincia.Domain.Interfaces;
 using TestProvincia.Infrastructure.Data;
 
@@ -17,18 +16,19 @@ public class UserRepository : IUserRepository
 
     public async Task<IEnumerable<User>> GetAllAsync()
     {
-        return await _context.Users.ToListAsync();
+        return await _context.Users.Include(u => u.DocumentType).ToListAsync();
     }
 
     public async Task<User?> GetByIdAsync(int id)
     {
-        return await _context.Users.FindAsync(id);
+        return await _context.Users.Include(u => u.DocumentType).FirstOrDefaultAsync(u => u.Id == id);
     }
 
     public async Task<User> AddAsync(User user)
     {
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
+        await _context.Entry(user).Reference(u => u.DocumentType).LoadAsync();
         return user;
     }
 
@@ -36,6 +36,7 @@ public class UserRepository : IUserRepository
     {
         _context.Users.Update(user);
         await _context.SaveChangesAsync();
+        await _context.Entry(user).Reference(u => u.DocumentType).LoadAsync();
         return user;
     }
 
@@ -51,7 +52,15 @@ public class UserRepository : IUserRepository
 
     public async Task<User?> GetByDocumentNumberAsync(string number, string type)
     {
-        var typeaux = Enum.Parse<DocumentType>(type);
-        return await _context.Users.FirstOrDefaultAsync(x => x.DocumentNumber == number && x.DocumentType == typeaux);
+        var docType = await _context.DocumentTypes.FirstOrDefaultAsync(d => d.Desc == type);
+        if (docType is null) return null;
+
+        return await _context.Users.Include(u => u.DocumentType).FirstOrDefaultAsync(
+            x => x.DocumentNumber == number && x.DocumentTypeId == docType.Id);
+    }
+
+    public async Task<DocumentType?> GetDocumentTypeByDescAsync(string desc)
+    {
+        return await _context.DocumentTypes.FirstOrDefaultAsync(d => d.Desc == desc);
     }
 }

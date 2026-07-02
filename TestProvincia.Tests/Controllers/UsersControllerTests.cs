@@ -5,7 +5,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using TestProvincia.Application.DTOs;
 using TestProvincia.Domain.Entities;
-using TestProvincia.Domain.Enums;
 using TestProvincia.Infrastructure.Data;
 using TestProvinciaApi.Controllers;
 
@@ -25,6 +24,18 @@ public class UsersControllerTests
 
                 services.AddDbContext<AppDbContext>(options =>
                     options.UseInMemoryDatabase(dbName));
+
+                using var scope = services.BuildServiceProvider().CreateScope();
+                var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+                context.Database.EnsureCreated();
+                if (!context.DocumentTypes.Any())
+                {
+                    context.DocumentTypes.AddRange(
+                        new DocumentType { Id = 1, Desc = "DNI", Active = true },
+                        new DocumentType { Id = 2, Desc = "Pasaporte", Active = true }
+                    );
+                    context.SaveChanges();
+                }
             });
         });
     }
@@ -80,7 +91,7 @@ public class UsersControllerTests
             {
                 Name = "Maria",
                 LastName = "Lopez",
-                DocumentType = DocumentType.Pasaporte,
+                DocumentTypeId = 2,
                 DocumentNumber = "37558223",
                 Address = "Calle 123",
                 Province = "Santa Fe",
@@ -121,7 +132,7 @@ public class UsersControllerTests
             {
                 Name = "Original",
                 LastName = "Name",
-                DocumentType = DocumentType.DNI,
+                DocumentTypeId = 1,
                 DocumentNumber = "11111111"
             });
             await context.SaveChangesAsync();
@@ -145,7 +156,7 @@ public class UsersControllerTests
         var result = await response.Content.ReadFromJsonAsync<UserDto>();
         Assert.NotNull(result);
         Assert.Equal("Updated", result.Name);
-        Assert.Equal(DocumentType.Pasaporte, result.DocumentType);
+        Assert.Equal("Pasaporte", result.DocumentType);
     }
 
     [Fact]
@@ -178,7 +189,7 @@ public class UsersControllerTests
             {
                 Name = "ToDelete",
                 LastName = "User",
-                DocumentType = DocumentType.DNI,
+                DocumentTypeId = 1,
                 DocumentNumber = "22222222"
             });
             await context.SaveChangesAsync();
@@ -199,5 +210,78 @@ public class UsersControllerTests
         var response = await client.DeleteAsync("/api/users/999");
 
         Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+    }
+
+    [Fact]
+    public async Task CreateUser_DuplicateDocument_ReturnsConflict()
+    {
+        var factory = CreateFactory(Guid.NewGuid().ToString());
+        var client = factory.CreateClient();
+
+        var dto = new CreateUserDto
+        {
+            Name = "Original",
+            LastName = "User",
+            DocumentType = "DNI",
+            DocumentNumber = "33456789",
+            Address = "Av. Siempre Viva 742",
+            Province = "Córdoba",
+            PhoneNumber = "155551234"
+        };
+
+        var firstResponse = await client.PostAsJsonAsync("/api/users", dto);
+        Assert.Equal(HttpStatusCode.Created, firstResponse.StatusCode);
+
+        var secondResponse = await client.PostAsJsonAsync("/api/users", dto);
+        Assert.Equal(HttpStatusCode.Conflict, secondResponse.StatusCode);
+    }
+
+    [Fact]
+    public async Task UpdateUser_DuplicateDocument_ReturnsConflict()
+    {
+        var factory = CreateFactory(Guid.NewGuid().ToString());
+        var client = factory.CreateClient();
+
+        var userA = new CreateUserDto
+        {
+            Name = "User",
+            LastName = "A",
+            DocumentType = "DNI",
+            DocumentNumber = "11111111",
+            Address = "Calle 1",
+            Province = "CABA",
+            PhoneNumber = "111111111"
+        };
+        var responseA = await client.PostAsJsonAsync("/api/users", userA);
+        var userACreated = await responseA.Content.ReadFromJsonAsync<UserDto>();
+        Assert.Equal(HttpStatusCode.Created, responseA.StatusCode);
+
+        var userB = new CreateUserDto
+        {
+            Name = "User",
+            LastName = "B",
+            DocumentType = "DNI",
+            DocumentNumber = "22222222",
+            Address = "Calle 2",
+            Province = "CABA",
+            PhoneNumber = "222222222"
+        };
+        var responseB = await client.PostAsJsonAsync("/api/users", userB);
+        var userBCreated = await responseB.Content.ReadFromJsonAsync<UserDto>();
+        Assert.Equal(HttpStatusCode.Created, responseB.StatusCode);
+
+        var updateDto = new UpdateUserDto
+        {
+            Name = "User",
+            LastName = "B",
+            DocumentType = "DNI",
+            DocumentNumber = "11111111",
+            Address = "Calle 2",
+            Province = "CABA",
+            PhoneNumber = "222222222"
+        };
+
+        var updateResponse = await client.PutAsJsonAsync($"/api/users/{userBCreated!.Id}", updateDto);
+        Assert.Equal(HttpStatusCode.Conflict, updateResponse.StatusCode);
     }
 }
