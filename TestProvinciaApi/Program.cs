@@ -25,8 +25,8 @@ builder.Services.AddSwaggerGen(c =>
 builder.Services.AddDbContext<AppDbContext>(options =>
       options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"),
           b => b.EnableRetryOnFailure(
-              maxRetryCount: 5,
-              maxRetryDelay: TimeSpan.FromSeconds(30),
+              maxRetryCount: 3,
+              maxRetryDelay: TimeSpan.FromSeconds(5),
               errorNumbersToAdd: null)
               .MigrationsAssembly(typeof(AppDbContext).Assembly.FullName)
       )
